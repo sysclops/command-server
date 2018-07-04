@@ -1,8 +1,6 @@
 import sys
 from PyQt4 import QtGui, QtCore
 import socket
-import Pillow
-
 
 class Window(QtGui.QMainWindow):
 
@@ -38,9 +36,9 @@ class Window(QtGui.QMainWindow):
 		btn.move(0, 100)
 
 		printScrnAction = QtGui.QAction(QtGui.QIcon('camera.png'), 'Print the screen', self)
-		printScrnAction.triggered.connect(self.send_request_to_server(self, self.my_socket, 'TAKE_SCREENSHOT'))
+		printScrnAction.triggered.connect(self.printScrn)
 		self.toolBar = self.addToolBar("Take a screencap")
-		self.toolBar.addAction(self.send_request_to_server(self, self.my_socket, 'TAKE_SCREENSHOT'))
+		self.toolBar.addAction(self.printScrn)
 
 		fontChoice = QtGui.QAction('Font', self)
 		fontChoice.triggered.connect(self.font_choice)
@@ -90,6 +88,17 @@ class Window(QtGui.QMainWindow):
 		else:
 			pass
 
+        def printScrn(self,my_socket):
+            send_request_to_server(self, my_socket, "TAKE_SCREENSHOT")
+            send_request_to_server(self, my_socket,  "SEND_FILE")
+            newfile = open('D:\\newimage.jpg', 'wb')
+            while True:
+                data = my_socket.rcv(1024)
+                newfile.write(data)
+                if "Image sent!" in data:
+                    break
+                popup = QtGui.QMessageBox.information(self, 'Image recieved!', 'The image has been recevied.')
+
 	def valid_request(self, request):
 		if "TAKE_SCREENSHOT" in request or "DIR" in request or "DELETE" in request or \
 				"COPY" in request or "EXECUTE" in request or "EXIT" in request or "SEND_FILE" in request:
@@ -102,27 +111,10 @@ class Window(QtGui.QMainWindow):
 		else:
 			my_socket.send(str(len(request)) + request)
 
-	def handle_server_response(self, my_socket, request):
-		"""Receive the response from the server and handle it, according to the request
-		For example, DIR should result in printing the contents to the screen,
-		while SEND_FILE should result in saving the received file and notifying the user
-		"""
-		if "SEND_FILE" in request:
-			newfile = open('D:\\newimage.jpg', 'wb')
-			while True:
-				data = my_socket.recv(1024)
-				newfile.write(data)
-				if "Image sent!" in data:
-					break
-			popup = QtGui.QMessageBox.information(self, 'Image received!', 'The image has been received.')
-		elif request == "EXECUTE":
-			popup = QtGui.QMessageBox.information(self, 'Command executed!', 'The command has been executed.')
-		elif request == "DIR":
-			popup = QtGui.QMessageBox.information(self, 'Command executed!', 'The command has been executed.')
-		elif request == "DELETE":
-			popup = QtGui.QMessageBox.information(self, 'File deleted!', 'The file has been deleted.')
-		elif request == "COPY":
-			popup = QtGui.QMessageBox.information(self, 'File copied!', 'The file has been copied.')
+
+
+
+
 
 
 def run():
@@ -130,16 +122,4 @@ def run():
 	GUI = Window()
 	sys.exit(app.exec_())
 
-
-def main():
-	done = False
-	# loop until user requested to exit
-	while not done:
-		run()
-		request = raw_input("please enter command:\n")
-		if valid_request(request):
-			send_request_to_server(my_socket, request)
-			handle_server_response(my_socket, request)
-			if request == 'exit':
-				done = True
-	my_socket.close()
+run()
