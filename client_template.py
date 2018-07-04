@@ -1,8 +1,3 @@
-
-#   Heights sockets Ex. 2.7 template - client side
-#   Author: Barak Gonen, 2017
-
-
 import socket
 
 IP = "127.0.0.1"

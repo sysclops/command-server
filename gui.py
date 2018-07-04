@@ -1,16 +1,20 @@
 import sys
 from PyQt4 import QtGui, QtCore
+import socket
+import Pillow
 
+IP = '127.0.0.1'
+PORT = 1729
 
 class Window(QtGui.QMainWindow):
 
 	def __init__(self):
 		super(Window, self).__init__()
 		self.setGeometry(50, 50, 500, 300)
-		self.setWindowTitle("PyQT tuts!")
+		self.setWindowTitle("Command server!")
 		self.setWindowIcon(QtGui.QIcon('pythonlogo.png'))
 
-		extractAction = QtGui.QAction("&GET TO THE CHOPPAH!!!", self)
+		extractAction = QtGui.QAction("&Exit the app", self)
 		extractAction.setShortcut("Ctrl+Q")
 		extractAction.setStatusTip('Leave The App')
 		extractAction.triggered.connect(self.close_application)
@@ -19,25 +23,6 @@ class Window(QtGui.QMainWindow):
 		openEditor.setShortcut("Ctrl+E")
 		openEditor.setStatusTip('Open Editor')
 		openEditor.triggered.connect(self.editor)
-
-		openFile = QtGui.QAction("&Open File", self)
-		openFile.setShortcut("Ctrl+O")
-		openFile.setStatusTip('Open File')
-		openFile.triggered.connect(self.file_open)
-
-		saveFile = QtGui.QAction("&Save File", self)
-		saveFile.setShortcut("Ctrl+S")
-		saveFile.setStatusTip('Save File')
-		saveFile.triggered.connect(self.file_save)
-
-		self.statusBar()
-
-		mainMenu = self.menuBar()
-
-		fileMenu = mainMenu.addMenu('&File')
-		fileMenu.addAction(extractAction)
-		fileMenu.addAction(openFile)
-		fileMenu.addAction(saveFile)
 
 		editorMenu = mainMenu.addMenu("&Editor")
 		editorMenu.addAction(openEditor)
@@ -71,13 +56,6 @@ class Window(QtGui.QMainWindow):
 		checkBox.move(300, 25)
 		checkBox.stateChanged.connect(self.enlarge_window)
 
-		self.progress = QtGui.QProgressBar(self)
-		self.progress.setGeometry(200, 80, 250, 20)
-
-		self.btn = QtGui.QPushButton("Download", self)
-		self.btn.move(200, 120)
-		self.btn.clicked.connect(self.download)
-
 		# print(self.style().objectName())
 		self.styleChoice = QtGui.QLabel("Windows Vista", self)
 
@@ -87,34 +65,13 @@ class Window(QtGui.QMainWindow):
 		comboBox.addItem("cde")
 		comboBox.addItem("Plastique")
 		comboBox.addItem("Cleanlooks")
-		comboBox.addItem("windowsvista")
 
-		comboBox.move(50, 250)
-		self.styleChoice.move(50, 150)
+                comboBox.move(50,250)
+        	self.styleChoice.move(50, 150)
 		comboBox.activated[str].connect(self.style_choice)
 
-		cal = QtGui.QCalendarWidget(self)
-		cal.move(500, 200)
-		cal.resize(200, 200)
 
-		self.show()
-
-	def file_open(self):
-		name = QtGui.QFileDialog.getOpenFileName(self, 'Open File')
-		file = open(name, 'r')
-
-		self.editor()
-
-		with file:
-			text = file.read()
-			self.textEdit.setText(text)
-
-	def file_save(self):
-		name = QtGui.QFileDialog.getSaveFileName(self, 'Save File')
-		file = open(name, 'w')
-		text = self.textEdit.toPlainText()
-		file.write(text)
-		file.close()
+                self.show()
 
 	def color_picker(self):
 		color = QtGui.QColorDialog.getColor()
@@ -124,27 +81,9 @@ class Window(QtGui.QMainWindow):
 		self.textEdit = QtGui.QTextEdit()
 		self.setCentralWidget(self.textEdit)
 
-	def font_choice(self):
-		font, valid = QtGui.QFontDialog.getFont()
-		if valid:
-			self.styleChoice.setFont(font)
-
 	def style_choice(self, text):
 		self.styleChoice.setText(text)
 		QtGui.QApplication.setStyle(QtGui.QStyleFactory.create(text))
-
-	def download(self):
-		self.completed = 0
-
-		while self.completed < 100:
-			self.completed += 0.0001
-			self.progress.setValue(self.completed)
-
-	def enlarge_window(self, state):
-		if state == QtCore.Qt.Checked:
-			self.setGeometry(50, 50, 1000, 600)
-		else:
-			self.setGeometry(50, 50, 500, 300)
 
 	def close_application(self):
 		choice = QtGui.QMessageBox.question(self, 'Extract!',
@@ -156,11 +95,60 @@ class Window(QtGui.QMainWindow):
 		else:
 			pass
 
+        def valid_request(request):
+            if "TAKE_SCREENSHOT" in request or "DIR" in request or "DELETE" in request or \
+                    "COPY" in request or "EXECUTE" in request or "EXIT" in request or "SEND_FILE" in request:
+                return True
+
+            return False
+
+
+        def send_request_to_server(my_socket, request):
+            if len(request) <= 9:
+                my_socket.send("0" + str(len(request)) + request)
+            else:
+                my_socket.send(str(len(request)) + request)
+
+
+        def handle_server_response(my_socket, request):
+            """Receive the response from the server and handle it, according to the request
+
+            For example, DIR should result in printing the contents to the screen,
+            while SEND_FILE should result in saving the received file and notifying the user
+            """
+            if "SEND_FILE" in request:
+                newfile = open('D:\\newimage.jpg', 'wb')
+                while True:
+                    data = my_socket.recv(1024)
+                    newfile.write(data)
+                    if "Image sent!" in data:
+                        break
+                print "Image sent!"
+            else:
+                print my_socket.recv(1024)
 
 def run():
 	app = QtGui.QApplication(sys.argv)
 	GUI = Window()
 	sys.exit(app.exec_())
 
+        # open socket with the server
+        my_socket = socket.socket(socket.af_inet, socket.sock_stream)
+        my_socket.connect((ip, port))
 
-run()
+        # print instructions
+        print('welcome to remote computer application. available commands are:\n')
+        print('take_screenshot\nsend_file\ndir\ndelete\ncopy\nexecute\nexit')
+
+        done = false
+        # loop until user requested to exit
+        while not done:
+            run()
+            request = raw_input("please enter command:\n")
+            if valid_request(request):
+                send_request_to_server(my_socket, request)
+                handle_server_response(my_socket, request)
+                if request == 'exit':
+                    done = true
+        my_socket.close()
+
