@@ -1,11 +1,9 @@
 import sys
 from PyQt4 import QtGui, QtCore
 import socket
-import Pillow
 
 IP = '127.0.0.1'
 PORT = 1729
-
 
 class Window(QtGui.QMainWindow):
 
@@ -37,10 +35,16 @@ class Window(QtGui.QMainWindow):
 		btn.resize(btn.minimumSizeHint())
 		btn.move(0, 100)
 
+<<<<<<< HEAD
 		extractAction = QtGui.QAction(QtGui.QIcon('todachoppa.png'), 'Flee the Scene', self)
 		extractAction.triggered.connect(self.close_application)
 		self.toolBar = self.addToolBar("Extraction")
 		self.toolBar.addAction(extractAction)
+=======
+		printScrnAction = QtGui.QAction(QtGui.QIcon('camera.png'), 'Print the screen', self)
+		printScrnAction.triggered.connect(self.printScrn)
+		self.toolBar = self.addToolBar("Take a screencap")
+		self.toolBar.addAction(self.printScrn)
 
 		fontChoice = QtGui.QAction('Font', self)
 		fontChoice.triggered.connect(self.font_choice)
@@ -91,12 +95,28 @@ class Window(QtGui.QMainWindow):
 		else:
 			pass
 
+<<<<<<< HEAD
 	def valid_request(request):
+=======
+        def printScrn(self,my_socket):
+            send_request_to_server(self, my_socket, "TAKE_SCREENSHOT")
+            send_request_to_server(self, my_socket,  "SEND_FILE")
+            newfile = open('D:\\newimage.jpg', 'wb')
+            while True:
+                data = my_socket.rcv(1024)
+                newfile.write(data)
+                if "Image sent!" in data:
+                    break
+                popup = QtGui.QMessageBox.information(self, 'Image recieved!', 'The image has been recevied.')
+
+	def valid_request(self, request):
+>>>>>>> origin/master
 		if "TAKE_SCREENSHOT" in request or "DIR" in request or "DELETE" in request or \
 			"COPY" in request or "EXECUTE" in request or "EXIT" in request or "SEND_FILE" in request:
 				return True
 		return False
 
+<<<<<<< HEAD
 	def send_request_to_server(my_socket, request):
             if len(request) <= 9:
                 my_socket.send("0" + str(len(request)) + request)
@@ -119,12 +139,26 @@ class Window(QtGui.QMainWindow):
                 print "Image sent!"
             else:
                 print my_socket.recv(1024)
+=======
+	def send_request_to_server(self, my_socket, request):
+		if len(request) <= 9:
+			my_socket.send("0" + str(len(request)) + request)
+		else:
+			my_socket.send(str(len(request)) + request)
+
+
+
+
+
+
+>>>>>>> origin/master
 
 def run():
 	app = QtGui.QApplication(sys.argv)
 	GUI = Window()
 	sys.exit(app.exec_())
 
+<<<<<<< HEAD
 def main():
 	# open socket with the server
 
@@ -145,3 +179,6 @@ def main():
                 done = True
     my_socket.close()
 
+=======
+run()
+>>>>>>> origin/master
