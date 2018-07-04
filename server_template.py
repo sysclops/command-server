@@ -5,7 +5,6 @@ import socket
 import subprocess
 import shutil
 from PIL import ImageGrab
-from PIL import Image
 import glob
 import os
 
