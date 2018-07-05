@@ -11,7 +11,7 @@ class Window(QtGui.QMainWindow):
 		self.setGeometry(50, 50, 100, 115)
 		self.setWindowTitle("Command server!")
 		self.setWindowIcon(QtGui.QIcon('pythonlogo.png'))
-		
+
 
 		self.my_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 		self.my_socket.connect(('127.0.0.1', 1729))
@@ -29,27 +29,27 @@ class Window(QtGui.QMainWindow):
 		btn.resize(btn.minimumSizeHint())
 		btn.move(0, 80)
 
-		printScrnAction = QtGui.QAction(QtGui.QIcon('camera.png'), 'Print the screen', self)
+		printScrnAction = QtGui.QAction(QtGui.QIcon('images/camera.png'), 'Print the screen', self)
 		printScrnAction.triggered.connect(self.print_screen)
 		self.toolBar = self.addToolBar("Take a screencap")
 		self.toolBar.addAction(printScrnAction)
 
-		dirAction = QtGui.QAction(QtGui.QIcon('folder.png'), 'Print contents of directory', self)
+		dirAction = QtGui.QAction(QtGui.QIcon('images/folder.png'), 'Print contents of directory', self)
 		dirAction.triggered.connect(self.directory)
 		self.toolBar = self.addToolBar("Print contents of directory")
 		self.toolBar.addAction(dirAction)
 
-		deleteAction = QtGui.QAction(QtGui.QIcon('delete.png'), 'Deletes a file', self)
+		deleteAction = QtGui.QAction(QtGui.QIcon('images/delete.png'), 'Deletes a file', self)
 		deleteAction.triggered.connect(self.delete)
 		self.toolBar = self.addToolBar("Delete a file")
 		self.toolBar.addAction(deleteAction)
 
-		copyAction = QtGui.QAction(QtGui.QIcon('copy.png'), 'Copies a file', self)
+		copyAction = QtGui.QAction(QtGui.QIcon('images/copy.png'), 'Copies a file', self)
 		copyAction.triggered.connect(self.copy)
 		self.toolBar = self.addToolBar("Copy a file")
 		self.toolBar.addAction(copyAction)
 
-		execAction = QtGui.QAction(QtGui.QIcon('execute.png'), 'Executes a file', self)
+		execAction = QtGui.QAction(QtGui.QIcon('images/execute.png'), 'Executes a file', self)
 		execAction.triggered.connect(self.execute)
 		self.toolBar = self.addToolBar("Execute a file")
 		self.toolBar.addAction(execAction)
