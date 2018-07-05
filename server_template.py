@@ -1,12 +1,14 @@
 #   Heights sockets Ex. 2.7 template - server side
 #   Author: Barak Gonen, 2017
 
+import datetime
 import socket
 import subprocess
 import shutil
 from PIL import ImageGrab
 import glob
 import os
+from distutils.spawn import find_executable
 
 IP = "0.0.0.0"
 PORT = 1729
@@ -14,9 +16,10 @@ PORT = 1729
 
 def receive_client_request(client_socket):
     command = client_socket.recv(1024)
-    if "EXIT" == command[2:]:
-        return command[2:], ""
-    return command[2:command.index(" ")], command[command.index(" ") + 1:]
+    print command
+    if "EXIT" == command[:] or "TAKE_SCREENSHOT" == command[:]:
+        return command[:], ""
+    return command[:command.index(" ")], command[command.index(" ") + 1:]
 
 
 def check_client_request(command, params):
@@ -29,16 +32,16 @@ def check_client_request(command, params):
     elif command == "DELETE":
         return os.path.exists(params), "File doesnt exist"
     elif command == "COPY":
-        return os.path.exists(params[:params.index(" ")]) and os.path.exists(params[params.index(" ") + 1:]), "Failed"
+        return os.path.exists(params[:params.index(".") + 4]) and os.path.exists(params[params.index(".") + 4:]), "Failed"
     elif command == "EXECUTE":
-        return os.path.exists(params), "Cannot execute command"
+        return find_executable('notepad.exe') is not None, "Cannot execute command"
     else:
         return True, "Invalid command"
 
 
 def handle_client_request(command, params):
     if command == "TAKE_SCREENSHOT":
-        ImageGrab.grab().save(params)
+        ImageGrab.grab().save(str(datetime.datetime.now().second)+'.jpg', 'JPEG')
         return "Screenshot taken"
     elif command == "DIR":
         return glob.glob(params + "//*")
@@ -48,7 +51,7 @@ def handle_client_request(command, params):
         os.remove(params)
         return "Picture deleted"
     elif command == "COPY":
-        shutil.copy(params[:params.index(" ")], params[params.index(" ") + 1:])
+        shutil.copy(params[:params.index(".") + 4], params[params.index(".") + 4:])
         return "File copied"
     elif command == "EXECUTE":
         subprocess.call(params, shell=True)
@@ -86,12 +89,15 @@ def main():
     done = False
     while not done:
         command, params = receive_client_request(client_socket)
+        params = params.replace(" ", "")
+        params = params.replace("\\", "/")
+        command = command.replace(" ", "")
         valid, error_msg = check_client_request(command, params)
         if valid:
             response = handle_client_request(command, params)
             send_response_to_client(response, client_socket, command)
         else:
-            send_response_to_client(error_msg, client_socket)
+            send_response_to_client(error_msg, client_socket, '')
 
         if command == 'EXIT':
             done = True

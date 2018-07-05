@@ -13,10 +13,7 @@ def valid_request(request):
 
 
 def send_request_to_server(my_socket, request):
-    if len(request) <= 9:
-        my_socket.send("0" + str(len(request)) + request)
-    else:
-        my_socket.send(str(len(request)) + request)
+    my_socket.send(request)
 
 
 def handle_server_response(my_socket, request):
@@ -26,7 +23,7 @@ def handle_server_response(my_socket, request):
     while SEND_FILE should result in saving the received file and notifying the user
     """
     if "SEND_FILE" in request:
-        newfile = open('D:\\newimage.jpg', 'wb')
+        newfile = open('B:\\newimage.jpg', 'wb')
         while True:
             data = my_socket.recv(1024)
             newfile.write(data)
